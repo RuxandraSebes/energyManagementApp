@@ -1,0 +1,129 @@
+version: '3'
+
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: always
+    ports:
+      - "80:80" # The HTTP port
+      # - "443:443" # The HTTPS port
+      - "8080:8080" # Dashboard port
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro" # Traefik can listen to the Docker events
+      - "./traefik.yml:/etc/traefik/traefik.yml:ro" # Static configuration file
+      - "./dynamic:/etc/traefik/dynamic:ro" # Dynamic configuration files
+      - "./logs:/var/log/traefik" # Log files
+    networks:
+      - demo_net
+
+  people-db:
+    image: postgres
+    container_name: people-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: people
+    ports:
+      - "5433:5432"
+    volumes:
+      - people-data:/var/lib/postgresql/data
+    networks:
+      - demo_net
+
+  devices-db:
+    image: postgres
+    container_name: devices-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: devices
+    ports:
+      - "5434:5432"
+    volumes:
+      - devices-data:/var/lib/postgresql/data
+    networks:
+      - demo_net
+
+  auth-db:
+    image: postgres
+    container_name: auth-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: auth
+    ports:
+      - "5435:5432"
+    volumes:
+      - auth-data:/var/lib/postgresql/data
+    networks:
+      - demo_net
+
+  people:
+    image: backend-image-people 
+    build:
+      context: ./demoP
+      dockerfile: Dockerfile
+    container_name: people
+    environment:
+      - DB_IP=people-db
+      - DB_PORT=5432
+      - DB_DBNAME=people
+      - DB_USER=postgres
+      - DB_PASSWORD=root
+    networks:
+      - demo_net
+
+  devices:
+    image: backend-image-devices
+    build:
+      context: ./demoD
+      dockerfile: Dockerfile
+    container_name: devices
+    environment:
+      - DB_IP=devices-db
+      - DB_PORT=5432
+      - DB_DBNAME=devices
+      - DB_USER=postgres
+      - DB_PASSWORD=root
+    networks:
+      - demo_net
+
+  auth:
+    image: backend-image-auth
+    build:
+      context: ./demoA
+      dockerfile: Dockerfile
+    container_name: auth
+    environment:
+      - DB_IP=auth-db
+      - DB_PORT=5432
+      - DB_DBNAME=auth
+      - DB_USER=postgres
+      - DB_PASSWORD=root
+    networks:
+      - demo_net
+
+  frontend:
+    build:
+      context: ./frontend/frontend-sd
+      dockerfile: Dockerfile
+    container_name: frontend
+    networks:
+      - demo_net
+    depends_on:
+      - people
+      - devices
+      - auth
+    restart: on-failure
+
+volumes:
+  people-data:
+  devices-data:
+  auth-data:
+
+networks:
+  demo_net:

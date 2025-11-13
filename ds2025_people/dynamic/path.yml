@@ -1,0 +1,65 @@
+http:
+  routers:
+    frontend:
+      rule: "Host(`localhost`)" # Match requests to localhost without /api prefix
+      entryPoints:
+        - web # Listen on the web (HTTP) entry point
+      service: frontend-service # Forward to the nginx service
+    people-router:
+      rule: "Host(`localhost`) && PathPrefix(`/people`)"
+      entryPoints:
+        - web
+      service: people-service
+      middlewares:
+        - auth-basic
+        - strip-api-prefix
+
+    devices-router:
+      rule: "Host(`localhost`) && PathPrefix(`/devices`)"
+      entryPoints:
+        - web
+      service: devices-service
+      middlewares:
+        - auth-basic
+        - strip-api-prefix
+
+    auth-router:
+      rule: "Host(`localhost`) && PathPrefix(`/auth`)"
+      entryPoints:
+        - web
+      service: auth-service
+      middlewares:
+        - auth-basic
+        - strip-api-prefix
+
+  middlewares: #modifica cererea inainte sa ajunga la aplicatie
+    strip-api-prefix:
+      stripPrefix:
+        prefixes:
+          - "/api"
+
+    auth-basic: # Middleware for basic authentication
+      basicAuth:
+        users:
+          - "user:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/" # password = "test"
+
+  services:
+    frontend-service:
+      loadBalancer:
+        servers:
+          - url: "http://frontend:3000"
+          
+    people-service:
+      loadBalancer:
+        servers:
+          - url: "http://people:8080"   
+
+    devices-service:
+      loadBalancer:
+        servers:
+          - url: "http://devices:8081"
+
+    auth-service:
+      loadBalancer:
+        servers:
+          - url: "http://auth:8082"
