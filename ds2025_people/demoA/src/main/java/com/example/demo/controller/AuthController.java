@@ -2,8 +2,11 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.RegisterRequest;
 import com.example.demo.service.AuthService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
@@ -36,5 +39,11 @@ public class AuthController {
     public String validateToken(@RequestParam String token) {
         boolean valid = authService.validateToken(token);
         return valid ? "Token is valid" : "Invalid or expired token";
+    }
+
+    @DeleteMapping(value = "/{authUserId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable("authUserId") Long authUserId) {
+        authService.deleteUserByAuthUserId(authUserId); // <--- METODĂ NOUĂ
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

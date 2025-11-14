@@ -1,5 +1,7 @@
 package com.example.demo.dto;
 
+import java.util.UUID;
+
 // DTO-ul trimis de la Auth Service la People Service
 public class PeopleRegistrationRequest {
     private Long authUserId;
@@ -23,6 +25,7 @@ public class PeopleRegistrationRequest {
         this.age = age;
         this.address = address;
     }
+
 
     // Getteri și Setteri
     public Long getAuthUserId() { return authUserId; }

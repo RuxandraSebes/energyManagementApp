@@ -5,6 +5,8 @@ import com.example.demo.services.DeviceService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -48,5 +50,11 @@ public class DeviceController {
     public ResponseEntity<Void> deleteDevice(@PathVariable UUID id){
         deviceService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping(value = "/user/{personId}")
+    public ResponseEntity<Void> deleteUserDevices(@PathVariable("personId") UUID personId) {
+        deviceService.deleteUserDeviceAssociations(personId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

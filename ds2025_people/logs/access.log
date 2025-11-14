@@ -201,3 +201,7 @@
 172.18.0.1 - - [14/Nov/2025:07:34:13 +0000] "GET /manifest.json HTTP/1.1" 304 0 "-" "-" 20 "frontend@file" "http://frontend:3000" 19ms
 172.18.0.1 - - [14/Nov/2025:07:34:13 +0000] "GET /logo192.png HTTP/1.1" 304 0 "-" "-" 21 "frontend@file" "http://frontend:3000" 50ms
 172.18.0.1 - user [14/Nov/2025:07:34:56 +0000] "POST /auth/register HTTP/1.1" 200 56 "-" "-" 22 "auth-router@file" "http://auth:8082" 1195ms
+172.18.0.1 - user [14/Nov/2025:07:40:48 +0000] "POST /auth/login HTTP/1.1" 200 149 "-" "-" 23 "auth-router@file" "http://auth:8082" 384ms
+172.18.0.1 - user [14/Nov/2025:07:41:04 +0000] "GET /people HTTP/1.1" 200 91 "-" "-" 24 "people-router@file" "http://people:8080" 672ms
+172.18.0.1 - user [14/Nov/2025:07:41:19 +0000] "POST /people HTTP/1.1" 200 85 "-" "-" 25 "people-router@file" "http://people:8080" 233ms
+172.18.0.1 - user [14/Nov/2025:07:41:19 +0000] "GET /people HTTP/1.1" 200 177 "-" "-" 26 "people-router@file" "http://people:8080" 12ms

@@ -11,8 +11,10 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Value; // Import necesar pentru @Value
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.transaction.annotation.Transactional; // Necesar pentru operatii de stergere
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -91,5 +93,15 @@ public class AuthService {
 
     public boolean validateToken(String token) {
         return jwtUtil.validateToken(token);
+    }
+
+    @Transactional
+    public void deleteUserByAuthUserId(Long authUserId) { // <--- METODĂ NOUĂ
+        Optional<User> userOptional = userRepository.findById(authUserId); // ID-ul Long
+
+        if (userOptional.isPresent()) {
+            userRepository.delete(userOptional.get());
+        }
+        // Dacă utilizatorul nu este găsit (Optional.isEmpty()), nu facem nimic.
     }
 }

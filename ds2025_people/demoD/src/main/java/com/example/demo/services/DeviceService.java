@@ -98,6 +98,12 @@ public class DeviceService {
         LOGGER.debug("Device with id {} was deleted from db", id);
     }
 
+    public void deleteUserDeviceAssociations(UUID personId) {
+        int deletedCount = userDeviceRepository.deleteByPersonId(personId);
+        LOGGER.info("Au fost șterse {} asocieri de dispozitive (UserDevice) pentru persoana cu id-ul {}.", deletedCount, personId);
+        // Nu aruncăm excepție dacă nu se găsesc înregistrări.
+    }
+
     private DeviceDetailsDTO toDeviceDetailsDTOWithUsers(Device device) {
         List<UUID> assignedUserIds = userDeviceRepository.findByIdDevice(device.getId())
                 .stream()
