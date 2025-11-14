@@ -32,6 +32,17 @@ public class Person  implements Serializable{
     @Column(name = "age", nullable = false)
     private int age;
 
+    public Long getAuthUserId() {
+        return authUserId;
+    }
+
+    public void setAuthUserId(Long authUserId) {
+        this.authUserId = authUserId;
+    }
+
+    @Column(name = "auth_user_id", unique = true)
+    private Long authUserId;
+
 
     public Person() {
     }

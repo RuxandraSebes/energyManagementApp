@@ -1,5 +1,6 @@
 package com.example.demo.dtos.builders;
 
+import com.example.demo.dtos.PersonAuthRequestDTO;
 import com.example.demo.dtos.PersonDTO;
 import com.example.demo.dtos.PersonDetailsDTO;
 import com.example.demo.entities.Person;
@@ -21,5 +22,19 @@ public class PersonBuilder {
         return new Person(personDetailsDTO.getName(),
                 personDetailsDTO.getAddress(),
                 personDetailsDTO.getAge());
+    }
+
+    public static Person toEntity(PersonAuthRequestDTO authRequestDTO) {
+        // Se folosește constructorul existent pentru detaliile de bază
+        Person person = new Person(
+                authRequestDTO.getName(),
+                authRequestDTO.getAddress(),
+                authRequestDTO.getAge()
+        );
+
+        // Setarea câmpului unic de legătură
+        person.setAuthUserId(authRequestDTO.getAuthUserId());
+
+        return person;
     }
 }

@@ -1,6 +1,7 @@
 package com.example.demo.services;
 
 
+import com.example.demo.dtos.PersonAuthRequestDTO;
 import com.example.demo.dtos.PersonDTO;
 import com.example.demo.dtos.PersonDetailsDTO;
 import com.example.demo.dtos.builders.PersonBuilder;
@@ -47,6 +48,13 @@ public class PersonService {
         Person person = PersonBuilder.toEntity(personDTO);
         person = personRepository.save(person);
         LOGGER.debug("Person with id {} was inserted in db", person.getId());
+        return person.getId();
+    }
+
+    public UUID insertFromAuth(PersonAuthRequestDTO authRequestDTO) {
+        Person person = PersonBuilder.toEntity(authRequestDTO);
+        person = personRepository.save(person);
+        LOGGER.debug("Person linked to Auth ID {} was inserted in db", authRequestDTO.getAuthUserId());
         return person.getId();
     }
 

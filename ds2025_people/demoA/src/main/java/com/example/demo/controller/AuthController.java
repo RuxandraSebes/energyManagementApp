@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.RegisterRequest;
 import com.example.demo.service.AuthService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,8 +16,15 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String register(@RequestParam String username, @RequestParam String password, @RequestParam String role) {
-        return authService.register(username, password, role);
+    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+        String result = authService.register(request);
+
+        if (result.startsWith("User registered successfully")) {
+            return ResponseEntity.ok(result);
+        } else {
+            // Pentru erori (ex: User already exists), returnăm 400 Bad Request
+            return ResponseEntity.badRequest().body(result);
+        }
     }
 
     @PostMapping("/login")

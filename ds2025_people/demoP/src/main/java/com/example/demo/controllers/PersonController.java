@@ -1,5 +1,6 @@
 package com.example.demo.controllers;
 
+import com.example.demo.dtos.PersonAuthRequestDTO;
 import com.example.demo.dtos.PersonDTO;
 import com.example.demo.dtos.PersonDetailsDTO;
 import com.example.demo.services.PersonService;
@@ -34,6 +35,16 @@ public class PersonController {
         UUID id = personService.insert(person);
         PersonDetailsDTO saved = personService.findPersonById(id);
         return ResponseEntity.ok(saved);
+    }
+
+    @PostMapping("/internal-auth-insert")
+    public ResponseEntity<String> createFromAuth(@RequestBody PersonAuthRequestDTO authRequest) {
+        try {
+            UUID id = personService.insertFromAuth(authRequest);
+            return ResponseEntity.ok("Person entry created successfully with UUID: " + id);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error creating person from Auth data: " + e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
