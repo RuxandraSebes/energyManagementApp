@@ -11,7 +11,7 @@ http:
         - web
       service: people-service
       middlewares:
-        - auth-basic
+        # - auth-basic
         - strip-api-prefix
 
     devices-router:
@@ -20,7 +20,7 @@ http:
         - web
       service: devices-service
       middlewares:
-        - auth-basic
+        # - auth-basic
         - strip-api-prefix
 
     auth-router:
@@ -29,7 +29,7 @@ http:
         - web
       service: auth-service
       middlewares:
-        - auth-basic
+        #- auth-basic
         - strip-api-prefix
 
   middlewares: #modifica cererea inainte sa ajunga la aplicatie
@@ -38,10 +38,10 @@ http:
         prefixes:
           - "/api"
 
-    auth-basic: # Middleware for basic authentication
-      basicAuth:
-        users:
-          - "user:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/" # password = "test"
+    # auth-basic: # Middleware for basic authentication
+    #   basicAuth:
+    #     users:
+    #       - "user:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/" # password = "test"
 
   services:
     frontend-service:

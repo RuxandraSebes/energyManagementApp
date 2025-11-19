@@ -16,4 +16,5 @@ public interface PersonRepository extends JpaRepository<Person, UUID> {
             "WHERE p.id = :id ")
     Optional<Person> findById(@Param("id") UUID id);
 
+    Optional<Person> findByAuthUserId(Long authUserId);
 }

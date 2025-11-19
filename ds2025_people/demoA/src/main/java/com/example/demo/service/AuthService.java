@@ -85,7 +85,8 @@ public class AuthService {
 
         User user = userOpt.get();
         if (passwordEncoder.matches(password, user.getPassword())) {
-            return jwtUtil.generateToken(user.getUsername(), user.getRole());
+            // Include user ID in token
+            return jwtUtil.generateToken(user.getUsername(), user.getRole(), user.getId()); // <--- MODIFIED
         } else {
             return "Invalid password!";
         }

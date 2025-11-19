@@ -17,11 +17,11 @@ export default function (app) {
     })
   );
 
-//   app.use(
-//     "/api/auth",
-//     createProxyMiddleware({
-//       target: "http://localhost:8083", 
-//       changeOrigin: true,
-//     })
-//   );
+  app.use(
+    "/auth",
+    createProxyMiddleware({
+      target: "http://localhost", 
+      changeOrigin: true,
+    })
+  );
 };

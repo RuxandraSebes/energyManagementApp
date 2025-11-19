@@ -8,6 +8,7 @@ import com.example.demo.dtos.builders.PersonBuilder;
 import com.example.demo.entities.Person;
 import com.example.demo.handlers.exceptions.model.ResourceNotFoundException;
 import com.example.demo.repositories.PersonRepository;
+import com.example.demo.security.UserAuthInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
@@ -42,11 +43,24 @@ public class PersonService {
         this.restTemplate = restTemplate;
     }
 
-    public List<PersonDetailsDTO> findPersonsAllDetails() {
-        List<Person> personList = personRepository.findAll();
-        return personList.stream()
-                .map(PersonBuilder::toPersonDetailsDTO)
-                .collect(Collectors.toList());
+//    public List<PersonDetailsDTO> findPersonsAllDetails() {
+//        List<Person> personList = personRepository.findAll();
+//        return personList.stream()
+//                .map(PersonBuilder::toPersonDetailsDTO)
+//                .collect(Collectors.toList());
+//    }
+
+    public List<PersonDetailsDTO> findPersons(UserAuthInfo userAuthInfo) {
+        if (userAuthInfo.isAdmin()) {
+            return personRepository.findAll().stream()
+                    .map(PersonBuilder::toPersonDetailsDTO)
+                    .collect(Collectors.toList());
+        } else {
+            // User can only see their own profile
+            Person person = personRepository.findByAuthUserId(userAuthInfo.getUserId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Person linked to Auth ID: " + userAuthInfo.getUserId()));
+            return List.of(PersonBuilder.toPersonDetailsDTO(person));
+        }
     }
 
     public PersonDetailsDTO findPersonById(UUID id) {
@@ -56,6 +70,30 @@ public class PersonService {
             throw new ResourceNotFoundException(Person.class.getSimpleName() + " with id: " + id);
         }
         return PersonBuilder.toPersonDetailsDTO(prosumerOptional.get());
+    }
+
+    public PersonDetailsDTO findPersonByAuthId(Long authUserId) {
+        Person person = personRepository.findByAuthUserId(authUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Person linked to Auth ID: " + authUserId));
+        return PersonBuilder.toPersonDetailsDTO(person);
+    }
+
+    public PersonDetailsDTO findPersonById(UUID id, UserAuthInfo userAuthInfo) {
+        PersonDetailsDTO person = findPersonById(id); // Use the existing public method which throws ResourceNotFoundException
+
+        // USER must be viewing their own profile
+        if (userAuthInfo.isUser()) {
+            Person userPerson = personRepository.findByAuthUserId(userAuthInfo.getUserId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Person linked to Auth ID: " + userAuthInfo.getUserId()));
+
+            if (!person.getId().equals(userPerson.getId())) {
+                LOGGER.error("User with Auth ID {} attempted to access person with id {}", userAuthInfo.getUserId(), id);
+                throw new ResourceNotFoundException("Person with id: " + id); // Return 404 to obscure existence
+            }
+        }
+        // ADMIN is always allowed (no check needed)
+
+        return person;
     }
 
     public UUID insert(PersonDetailsDTO personDTO) {
@@ -72,9 +110,38 @@ public class PersonService {
         return person.getId();
     }
 
-    public PersonDetailsDTO update(UUID id, PersonDetailsDTO personDetails) {
+//    public PersonDetailsDTO update(UUID id, PersonDetailsDTO personDetails) {
+//        return personRepository.findById(id)
+//                .map(existingPerson -> {
+//                    existingPerson.setName(personDetails.getName());
+//                    existingPerson.setAge(personDetails.getAge());
+//                    existingPerson.setAddress(personDetails.getAddress());
+//
+//                    Person savedPerson = personRepository.save(existingPerson);
+//
+//                    return PersonBuilder.toPersonDetailsDTO(savedPerson);
+//                })
+//                .orElseThrow(() -> {
+//                    LOGGER.error("Person with id {} was not found in db", id);
+//                    return new ResourceNotFoundException(Person.class.getSimpleName() + " with id: " + id);
+//                });
+//    }
+
+    public PersonDetailsDTO update(UUID id, PersonDetailsDTO personDetails, UserAuthInfo userAuthInfo) {
         return personRepository.findById(id)
                 .map(existingPerson -> {
+                    // USER must be updating their own person
+                    if (userAuthInfo.isUser()) {
+                        Person userPerson = personRepository.findByAuthUserId(userAuthInfo.getUserId())
+                                .orElseThrow(() -> new ResourceNotFoundException("Person linked to Auth ID: " + userAuthInfo.getUserId()));
+
+                        if (!existingPerson.getId().equals(userPerson.getId())) {
+                            LOGGER.error("User with Auth ID {} attempted to update person with id {}", userAuthInfo.getUserId(), id);
+                            throw new ResourceNotFoundException(Person.class.getSimpleName() + " with id: " + id); // 404
+                        }
+                    }
+                    // ADMIN is always allowed
+
                     existingPerson.setName(personDetails.getName());
                     existingPerson.setAge(personDetails.getAge());
                     existingPerson.setAddress(personDetails.getAddress());

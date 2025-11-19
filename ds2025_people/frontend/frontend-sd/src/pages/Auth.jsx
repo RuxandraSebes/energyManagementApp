@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-
-// Adresa URL este BASE_URL = "http://localhost/auth";
-// Presupunem că aceasta este configurată corect în mediul Docker/Traefik.
+import { useNavigate } from "react-router-dom"; 
+import { useAuth } from "../contexts/AuthContext"; // <-- NOU: Import context
+// REMOVED: decodeJwt function is now in AuthContext
 
 const initialForm = { 
     username: "", 
@@ -28,39 +28,42 @@ export default function Auth() {
     const [form, setForm] = useState(initialForm);
     const [notification, setNotification] = useState({ message: "", type: "" });
     const [isLoading, setIsLoading] = useState(false);
+    
+    const navigate = useNavigate(); 
+    const { login } = useAuth(); // <-- NOU: Extrage functia login din context
 
-    const BASE_URL = "http://localhost/auth";
+    const BASE_URL = "/auth"; 
+
+    const handleChange = (e) => {
+        setForm({ ...form, [e.target.name]: e.target.value });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setNotification({ message: "", type: "" });
         setIsLoading(true);
 
-        const endpoint = isLogin ? "login" : "register";
+        const endpoint = isLogin ? "/login" : "/register"; 
         
-        // 1. Pregătim corpul cererii
         let body;
         let headers = { "Content-Type": "application/json" };
         
         if (isLogin) {
-            // Pentru login: trimitem ca application/x-www-form-urlencoded
-            // (pentru a se potrivi cu vechiul endpoint @RequestParam)
             body = new URLSearchParams({ username: form.username, password: form.password });
             headers = { "Content-Type": "application/x-www-form-urlencoded" };
         } else {
-            // Pentru register: trimitem ca JSON (pentru noul endpoint @RequestBody)
             body = JSON.stringify({
                 username: form.username,
                 password: form.password,
                 role: form.role,
                 name: form.name,
-                age: parseInt(form.age, 10), // Asigură-te că vârsta este număr
+                age: parseInt(form.age, 10), 
                 address: form.address,
             });
         }
 
         try {
-            const res = await fetch(`${BASE_URL}/${endpoint}`, {
+            const res = await fetch(`${BASE_URL}${endpoint}`, {
                 method: "POST",
                 headers: headers,
                 body: body,
@@ -70,11 +73,24 @@ export default function Auth() {
 
             if (res.ok) {
                 if (isLogin) {
-                    localStorage.setItem("jwt", text);
-                    setNotification({ message: "Login success! JWT stored.", type: "success" });
+                    // FOLOSESTE FUNCTIA DE LOGIN DIN CONTEXT
+                    const role = login(text); 
+                    
+                    if (role) {
+                        setNotification({ message: `Login successful. Role: ${role}.`, type: "success" });
+                        
+                        // LOGICA DE REDIRECȚIONARE
+                        if (role === 'admin') {
+                            navigate('/people'); 
+                        } else if (role === 'user') {
+                            navigate('/dashboard'); // <-- REDIRECȚIONARE NOUĂ PENTRU USER
+                        }
+                    } else {
+                        setNotification({ message: "Login successful, but role could not be determined.", type: "error" });
+                        navigate('/people'); // Fallback redirect (shouldn't happen)
+                    }
                 } else {
                     setNotification({ message: text, type: "success" });
-                    // Treci la Login după înregistrarea reușită
                     if (text.toLowerCase().includes("success")) {
                         setTimeout(() => setIsLogin(true), 1500); 
                     }
@@ -90,11 +106,7 @@ export default function Auth() {
         }
     };
     
-    // Funcție pentru a actualiza state-ul formularului
-    const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-    };
-
+    // ... (rest of the component)
 
     return (
         <div className="flex justify-center items-center min-h-screen bg-gray-50 p-4">
