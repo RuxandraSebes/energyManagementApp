@@ -1,5 +1,3 @@
-// demoP/security/JwtRequestFilter.java and demoD/security/JwtRequestFilter.java
-
 package com.example.demo.security;
 
 import jakarta.servlet.FilterChain;
@@ -45,7 +43,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         if (userId != null && role != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // Create UserAuthInfo object and store it as the principal
             UserAuthInfo authInfo = new UserAuthInfo(userId, role);
 
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(

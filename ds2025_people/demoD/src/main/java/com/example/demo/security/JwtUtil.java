@@ -12,7 +12,7 @@ import java.security.Key;
 @Component
 public class JwtUtil {
 
-    private static final String SECRET_KEY = "7579eed5ff630e842e0e8c48f22339167579eed5ff630e842e0e8c48f2233916"; // Same key as in Auth service
+    private static final String SECRET_KEY = "7579eed5ff630e842e0e8c48f22339167579eed5ff630e842e0e8c48f2233916";
 
     private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
 

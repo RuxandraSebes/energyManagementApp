@@ -1,7 +1,7 @@
 package com.example.demo.security;
 
 public class UserAuthInfo {
-    private final Long userId; // The Long ID from Auth microservice
+    private final Long userId;
     private final String role;
 
     public UserAuthInfo(Long userId, String role) {

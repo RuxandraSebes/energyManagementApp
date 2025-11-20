@@ -11,14 +11,9 @@ import java.util.UUID;
 
 public interface DeviceRepository extends JpaRepository<Device, UUID> {
 
-    /**
-     * Example: JPA generate query by existing field
-     */
+
     List<Device> findByName(String name);
 
-    /**
-     * Example: Custom query
-     */
     @Query(value = "SELECT p " +
             "FROM Device p " +
             "WHERE p.name = :name " +

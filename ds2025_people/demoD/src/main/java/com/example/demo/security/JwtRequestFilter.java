@@ -10,8 +10,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.slf4j.Logger; // <-- NOU: Import Logger
-import org.slf4j.LoggerFactory; // <-- NOU: Import LoggerFactory
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -19,7 +19,7 @@ import java.util.Collections;
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JwtRequestFilter.class); // <-- NOU: Instanțiere Logger
+    private static final Logger LOGGER = LoggerFactory.getLogger(JwtRequestFilter.class);
     private final JwtUtil jwtUtil;
 
     public JwtRequestFilter(JwtUtil jwtUtil) {
@@ -39,33 +39,31 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
 
-            LOGGER.info("Attempting to validate JWT for request: {}", request.getRequestURI()); // <-- LOGARE
+            LOGGER.info("Attempting to validate JWT for request: {}", request.getRequestURI());
 
             if (jwtUtil.validateToken(jwt)) {
-                try { // Adăugăm try-catch în jurul extracției pentru a prinde erorile de decodare
+                try {
                     userId = jwtUtil.extractUserId(jwt);
                     role = jwtUtil.extractRole(jwt);
 
-                    LOGGER.info("JWT Validated. Extracted User ID: {} and Role: {}", userId, role); // <-- LOGARE
+                    LOGGER.info("JWT Validated. Extracted User ID: {} and Role: {}", userId, role);
                 } catch (Exception e) {
                     LOGGER.error("Error extracting claims from JWT: {}", e.getMessage());
-                    userId = null; // Invalidează manual dacă extragerea eșuează
+                    userId = null;
                     role = null;
                 }
             } else {
-                LOGGER.warn("JWT validation failed for request: {}", request.getRequestURI()); // <-- LOGARE
+                LOGGER.warn("JWT validation failed for request: {}", request.getRequestURI());
             }
         } else {
-            LOGGER.info("No Bearer token found in Authorization header for request: {}", request.getRequestURI()); // <-- LOGARE
+            LOGGER.info("No Bearer token found in Authorization header for request: {}", request.getRequestURI());
         }
 
         if (userId != null && role != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // Logăm autoritatea care va fi setată în context
             String grantedAuthority = "ROLE_" + role.toUpperCase();
-            LOGGER.info("Setting Security Context for Auth ID: {} with Granted Authority: {}", userId, grantedAuthority); // <-- LOGARE
+            LOGGER.info("Setting Security Context for Auth ID: {} with Granted Authority: {}", userId, grantedAuthority);
 
-            // Create UserAuthInfo object and store it as the principal
             UserAuthInfo authInfo = new UserAuthInfo(userId, role);
 
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(

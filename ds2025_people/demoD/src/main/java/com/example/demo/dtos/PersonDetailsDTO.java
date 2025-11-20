@@ -2,7 +2,6 @@ package com.example.demo.dtos;
 
 import java.util.UUID;
 
-// Minimal DTO to match the required fields from the People microservice response.
 public class PersonDetailsDTO {
 
     private UUID id;

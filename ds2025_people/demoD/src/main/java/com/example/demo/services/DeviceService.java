@@ -15,9 +15,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import com.example.demo.security.UserAuthInfo; // <--- NEW IMPORT
-import org.springframework.beans.factory.annotation.Value; // <--- NEW IMPORT
-import org.springframework.web.client.RestTemplate; // <--- NEW IMPORT
+import com.example.demo.security.UserAuthInfo;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
@@ -30,22 +30,16 @@ public class DeviceService {
 
     private final RestTemplate restTemplate;
 
-    @Value("${service.people.base-url}") // Assuming this property is set in application.properties
+    @Value("${service.people.base-url}")
     private String PEOPLE_SERVICE_BASE_URL;
 
     private final DeviceRepository deviceRepository;
     private final UserDeviceRepository userDeviceRepository;
 
-//    @Autowired
-//    public DeviceService(DeviceRepository deviceRepository,
-//                         UserDeviceRepository userDeviceRepository) {
-//        this.deviceRepository = deviceRepository;
-//        this.userDeviceRepository = userDeviceRepository;
-//    }
 @Autowired
 public DeviceService(DeviceRepository deviceRepository,
                      UserDeviceRepository userDeviceRepository,
-                     RestTemplate restTemplate) { // <--- MODIFIED CONSTRUCTOR
+                     RestTemplate restTemplate) {
     this.deviceRepository = deviceRepository;
     this.userDeviceRepository = userDeviceRepository;
     this.restTemplate = restTemplate;
@@ -54,46 +48,35 @@ public DeviceService(DeviceRepository deviceRepository,
     private UUID getPersonUuidByAuthId(Long authUserId) {
         String url = PEOPLE_SERVICE_BASE_URL + "/by-auth/" + authUserId;
         try {
-            // Note: This relies on a new endpoint /people/by-auth/{authUserId} in the People service
             ResponseEntity<PersonDetailsDTO> response = restTemplate.getForEntity(url, PersonDetailsDTO.class);
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 return response.getBody().getId();
             }
         } catch (HttpClientErrorException.NotFound e) {
             LOGGER.warn("Person not found in People service for Auth ID: {}", authUserId);
-            // Treat as not found/not authorized for device visibility
             throw new ResourceNotFoundException("Person for Auth ID " + authUserId + " not found.");
         } catch (Exception e) {
             LOGGER.error("Error calling People service to get Person UUID for Auth ID: {}", authUserId, e);
             throw new RuntimeException("External service error during authorization.", e);
         }
-        return null; // Should be unreachable
+        return null;
     }
 
-//    public List<DeviceDetailsDTO> findAllDeviceDetails() {
-//        return deviceRepository.findAll().stream()
-//                .map(this::toDeviceDetailsDTOWithUsers)
-//                .collect(Collectors.toList());
-//    }
 
-    public List<DeviceDetailsDTO> findAllDeviceDetails(UserAuthInfo userAuthInfo) { // <--- MODIFIED SIGNATURE
+    public List<DeviceDetailsDTO> findAllDeviceDetails(UserAuthInfo userAuthInfo) {
         if (userAuthInfo.isAdmin()) {
             return deviceRepository.findAll().stream()
                     .map(this::toDeviceDetailsDTOWithUsers)
                     .collect(Collectors.toList());
         } else {
-            // User: Filter devices assigned to this person (UUID)
-            UUID personId = getPersonUuidByAuthId(userAuthInfo.getUserId()); // Gets Person's UUID
+            UUID personId = getPersonUuidByAuthId(userAuthInfo.getUserId());
 
-            // Find all UserDevice relations for this person
             List<UserDevice> userDevices = userDeviceRepository.findByIdUser(personId);
 
-            // Collect the Device IDs
             List<UUID> deviceIds = userDevices.stream()
                     .map(UserDevice::getIdDevice)
                     .collect(Collectors.toList());
 
-            // Fetch the Device entities by their IDs
             return deviceRepository.findAllById(deviceIds).stream()
                     .map(this::toDeviceDetailsDTOWithUsers)
                     .collect(Collectors.toList());
@@ -163,7 +146,6 @@ public DeviceService(DeviceRepository deviceRepository,
     public void deleteUserDeviceAssociations(UUID personId) {
         int deletedCount = userDeviceRepository.deleteByPersonId(personId);
         LOGGER.info("Au fost șterse {} asocieri de dispozitive (UserDevice) pentru persoana cu id-ul {}.", deletedCount, personId);
-        // Nu aruncăm excepție dacă nu se găsesc înregistrări.
     }
 
     private DeviceDetailsDTO toDeviceDetailsDTOWithUsers(Device device) {

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; 
-import { useAuth } from "../contexts/AuthContext"; // <-- NOU: Import context
-// REMOVED: decodeJwt function is now in AuthContext
+import { useAuth } from "../contexts/AuthContext"; 
 
 const initialForm = { 
     username: "", 
@@ -12,7 +11,6 @@ const initialForm = {
     address: "" 
 };
 
-// Componentă de notificare simplă, pentru a înlocui alert()
 const Notification = ({ message, type }) => {
     if (!message) return null;
     const baseStyle = "p-3 rounded-lg text-sm mb-4 transition-opacity duration-300";
@@ -30,7 +28,7 @@ export default function Auth() {
     const [isLoading, setIsLoading] = useState(false);
     
     const navigate = useNavigate(); 
-    const { login } = useAuth(); // <-- NOU: Extrage functia login din context
+    const { login } = useAuth(); 
 
     const BASE_URL = "/auth"; 
 
@@ -73,21 +71,19 @@ export default function Auth() {
 
             if (res.ok) {
                 if (isLogin) {
-                    // FOLOSESTE FUNCTIA DE LOGIN DIN CONTEXT
                     const role = login(text); 
                     
                     if (role) {
                         setNotification({ message: `Login successful. Role: ${role}.`, type: "success" });
                         
-                        // LOGICA DE REDIRECȚIONARE
                         if (role === 'admin') {
                             navigate('/people'); 
                         } else if (role === 'user') {
-                            navigate('/dashboard'); // <-- REDIRECȚIONARE NOUĂ PENTRU USER
+                            navigate('/dashboard'); 
                         }
                     } else {
                         setNotification({ message: "Login successful, but role could not be determined.", type: "error" });
-                        navigate('/people'); // Fallback redirect (shouldn't happen)
+                        navigate('/people'); 
                     }
                 } else {
                     setNotification({ message: text, type: "success" });
@@ -106,8 +102,6 @@ export default function Auth() {
         }
     };
     
-    // ... (rest of the component)
-
     return (
         <div className="flex justify-center items-center min-h-screen bg-gray-50 p-4">
             <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
@@ -138,7 +132,6 @@ export default function Auth() {
                     
                     {!isLogin && (
                         <>
-                            {/* Câmpuri suplimentare pentru înregistrare */}
                             <input
                                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="Full Name"
@@ -164,7 +157,7 @@ export default function Auth() {
                                 onChange={handleChange}
                                 required
                             />
-                            {/* Selectarea Rolului */}
+                            
                             <select
                                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white"
                                 name="role"

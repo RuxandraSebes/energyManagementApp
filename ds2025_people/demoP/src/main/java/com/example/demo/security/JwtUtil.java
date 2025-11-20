@@ -1,6 +1,3 @@
-// demoP/security/JwtUtil.java and demoD/security/JwtUtil.java
-// Make sure to use the exact same SECRET_KEY as demoA/security/JwtUtil.java
-
 package com.example.demo.security;
 
 import io.jsonwebtoken.*;
@@ -12,7 +9,7 @@ import java.security.Key;
 @Component
 public class JwtUtil {
 
-    private static final String SECRET_KEY = "7579eed5ff630e842e0e8c48f22339167579eed5ff630e842e0e8c48f2233916"; // Same key as in Auth service
+    private static final String SECRET_KEY = "7579eed5ff630e842e0e8c48f22339167579eed5ff630e842e0e8c48f2233916";
 
     private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
 

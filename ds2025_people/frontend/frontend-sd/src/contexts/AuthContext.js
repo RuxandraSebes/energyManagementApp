@@ -2,17 +2,13 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
-// Minimal utility to decode JWT and get the role
 const decodeJwt = (token) => {
     try {
-        // Get the payload (second part of the JWT)
         const base64Url = token.split('.')[1];
-        // Replace URL-safe characters and decode Base64
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         const payload = JSON.parse(atob(base64));
         return payload;
     } catch (e) {
-        // Token is invalid, expired, or malformed
         return null;
     }
 };
@@ -20,7 +16,6 @@ const decodeJwt = (token) => {
 export const AuthProvider = ({ children }) => {
     const [userRole, setUserRole] = useState(null);
 
-    // Check for existing token on initial load
     useEffect(() => {
         const token = localStorage.getItem('jwt');
         if (token) {

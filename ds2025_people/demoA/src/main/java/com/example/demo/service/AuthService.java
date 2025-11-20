@@ -8,10 +8,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.demo.dto.PeopleRegistrationRequest;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.beans.factory.annotation.Value; // Import necesar pentru @Value
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.ResourceAccessException;
-import org.springframework.transaction.annotation.Transactional; // Necesar pentru operatii de stergere
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -24,11 +24,9 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final RestTemplate restTemplate;
 
-    // ⬅️ MUTAT ÎN CONFIGURAȚIE: Adresa URL este luată din application.properties/yml
     @Value("${microservice.people.url}")
     private String peopleServiceUrl;
 
-    // ⬅️ AM ELIMINAT CONSTRUCTORUL INCOMPLET (a rămas doar cel complet)
     public AuthService(UserRepository userRepository, JwtUtil jwtUtil, RestTemplate restTemplate) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
@@ -40,21 +38,18 @@ public class AuthService {
             return "User already exists!";
         }
 
-        // 1. Salvarea în DB-ul Auth
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         User newUser = new User(request.getUsername(), encodedPassword, request.getRole());
         userRepository.save(newUser);
 
-        // 2. Apel către People Service
         try {
-            // Aici trimitem toate detaliile necesare serviciului People
             PeopleRegistrationRequest peopleRequest = new PeopleRegistrationRequest(
                     newUser.getId(),
                     request.getUsername(),
                     request.getRole(),
-                    request.getName(), // ⬅️ NOU
-                    request.getAge(),   // ⬅️ NOU
-                    request.getAddress() // ⬅️ NOU
+                    request.getName(),
+                    request.getAge(),
+                    request.getAddress()
             );
 
             ResponseEntity<String> response = restTemplate.postForEntity(
@@ -85,8 +80,7 @@ public class AuthService {
 
         User user = userOpt.get();
         if (passwordEncoder.matches(password, user.getPassword())) {
-            // Include user ID in token
-            return jwtUtil.generateToken(user.getUsername(), user.getRole(), user.getId()); // <--- MODIFIED
+            return jwtUtil.generateToken(user.getUsername(), user.getRole(), user.getId());
         } else {
             return "Invalid password!";
         }
@@ -97,12 +91,11 @@ public class AuthService {
     }
 
     @Transactional
-    public void deleteUserByAuthUserId(Long authUserId) { // <--- METODĂ NOUĂ
-        Optional<User> userOptional = userRepository.findById(authUserId); // ID-ul Long
+    public void deleteUserByAuthUserId(Long authUserId) {
+        Optional<User> userOptional = userRepository.findById(authUserId);
 
         if (userOptional.isPresent()) {
             userRepository.delete(userOptional.get());
         }
-        // Dacă utilizatorul nu este găsit (Optional.isEmpty()), nu facem nimic.
     }
 }

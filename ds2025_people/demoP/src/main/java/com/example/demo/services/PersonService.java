@@ -43,20 +43,12 @@ public class PersonService {
         this.restTemplate = restTemplate;
     }
 
-//    public List<PersonDetailsDTO> findPersonsAllDetails() {
-//        List<Person> personList = personRepository.findAll();
-//        return personList.stream()
-//                .map(PersonBuilder::toPersonDetailsDTO)
-//                .collect(Collectors.toList());
-//    }
-
     public List<PersonDetailsDTO> findPersons(UserAuthInfo userAuthInfo) {
         if (userAuthInfo.isAdmin()) {
             return personRepository.findAll().stream()
                     .map(PersonBuilder::toPersonDetailsDTO)
                     .collect(Collectors.toList());
         } else {
-            // User can only see their own profile
             Person person = personRepository.findByAuthUserId(userAuthInfo.getUserId())
                     .orElseThrow(() -> new ResourceNotFoundException("Person linked to Auth ID: " + userAuthInfo.getUserId()));
             return List.of(PersonBuilder.toPersonDetailsDTO(person));
@@ -79,19 +71,17 @@ public class PersonService {
     }
 
     public PersonDetailsDTO findPersonById(UUID id, UserAuthInfo userAuthInfo) {
-        PersonDetailsDTO person = findPersonById(id); // Use the existing public method which throws ResourceNotFoundException
+        PersonDetailsDTO person = findPersonById(id);
 
-        // USER must be viewing their own profile
         if (userAuthInfo.isUser()) {
             Person userPerson = personRepository.findByAuthUserId(userAuthInfo.getUserId())
                     .orElseThrow(() -> new ResourceNotFoundException("Person linked to Auth ID: " + userAuthInfo.getUserId()));
 
             if (!person.getId().equals(userPerson.getId())) {
                 LOGGER.error("User with Auth ID {} attempted to access person with id {}", userAuthInfo.getUserId(), id);
-                throw new ResourceNotFoundException("Person with id: " + id); // Return 404 to obscure existence
+                throw new ResourceNotFoundException("Person with id: " + id);
             }
         }
-        // ADMIN is always allowed (no check needed)
 
         return person;
     }
@@ -110,37 +100,18 @@ public class PersonService {
         return person.getId();
     }
 
-//    public PersonDetailsDTO update(UUID id, PersonDetailsDTO personDetails) {
-//        return personRepository.findById(id)
-//                .map(existingPerson -> {
-//                    existingPerson.setName(personDetails.getName());
-//                    existingPerson.setAge(personDetails.getAge());
-//                    existingPerson.setAddress(personDetails.getAddress());
-//
-//                    Person savedPerson = personRepository.save(existingPerson);
-//
-//                    return PersonBuilder.toPersonDetailsDTO(savedPerson);
-//                })
-//                .orElseThrow(() -> {
-//                    LOGGER.error("Person with id {} was not found in db", id);
-//                    return new ResourceNotFoundException(Person.class.getSimpleName() + " with id: " + id);
-//                });
-//    }
-
     public PersonDetailsDTO update(UUID id, PersonDetailsDTO personDetails, UserAuthInfo userAuthInfo) {
         return personRepository.findById(id)
                 .map(existingPerson -> {
-                    // USER must be updating their own person
                     if (userAuthInfo.isUser()) {
                         Person userPerson = personRepository.findByAuthUserId(userAuthInfo.getUserId())
                                 .orElseThrow(() -> new ResourceNotFoundException("Person linked to Auth ID: " + userAuthInfo.getUserId()));
 
                         if (!existingPerson.getId().equals(userPerson.getId())) {
                             LOGGER.error("User with Auth ID {} attempted to update person with id {}", userAuthInfo.getUserId(), id);
-                            throw new ResourceNotFoundException(Person.class.getSimpleName() + " with id: " + id); // 404
+                            throw new ResourceNotFoundException(Person.class.getSimpleName() + " with id: " + id);
                         }
                     }
-                    // ADMIN is always allowed
 
                     existingPerson.setName(personDetails.getName());
                     existingPerson.setAge(personDetails.getAge());
@@ -156,16 +127,6 @@ public class PersonService {
                 });
     }
 
-//    public void delete(UUID id){
-//        Person person = personRepository.findById(id)
-//                .orElseThrow(() -> new ResourceNotFoundException(
-//                        Person.class.getSimpleName() + " with id: " + id));
-//
-//        personRepository.delete(person);
-//        LOGGER.debug("Person with id {} was deleted from db", id);
-//        return;
-//    }
-
     @Transactional
     public void delete(UUID id) {
         Optional<Person> personOptional = personRepository.findById(id);
@@ -175,34 +136,28 @@ public class PersonService {
         }
 
         Person personToDelete = personOptional.get();
-        Long authIdToDelete = personToDelete.getAuthUserId(); // <--- NOU: Obținem ID-ul Long
+        Long authIdToDelete = personToDelete.getAuthUserId();
 
-        // 1. Șterge asocierile din microserviciul Devices (UserDevice)
         try {
-            deleteUserDevices(id); // Rămâne cu UUID-ul Persoanei
+            deleteUserDevices(id);
             LOGGER.info("Asocierile dispozitivelor pentru persoana cu id-ul {} au fost șterse din microserviciul Devices.", id);
         } catch (Exception e) {
-            // ...
+
         }
 
-        // 2. Șterge utilizatorul din microserviciul Auth
         try {
-            // ORIGINAL: deleteUserFromAuth(id);
-            deleteUserFromAuth(authIdToDelete); // <--- MODIFICAT: Trimitem ID-ul Long
+            deleteUserFromAuth(authIdToDelete);
             LOGGER.info("Utilizatorul cu id-ul Long {} a fost șters din microserviciul Auth.", authIdToDelete);
         } catch (Exception e) {
-            // ...
+
         }
 
-        // 3. Șterge persoana din baza de date locală (People DB)
         personRepository.delete(personToDelete);
         LOGGER.debug("Persoana cu id-ul {} a fost ștearsă din baza de date locală.", id);
     }
 
-    // Modificăm semnătura și logica metodei
-    private void deleteUserFromAuth(Long authUserId) { // <--- MODIFICAT: Acceptă Long
-        // Endpoint: DELETE http://auth:8082/auth/{authUserId}
-        String url = AUTH_SERVICE_BASE_URL + "/" + authUserId; // <--- MODIFICAT: Trimitem ID-ul Long
+    private void deleteUserFromAuth(Long authUserId) {
+        String url = AUTH_SERVICE_BASE_URL + "/" + authUserId;
 
         try {
             restTemplate.exchange(url, HttpMethod.DELETE, null, Void.class);
@@ -214,9 +169,7 @@ public class PersonService {
         }
     }
 
-    // Metodă privată pentru a șterge intrările UserDevice asociate din microserviciul Devices
     private void deleteUserDevices(UUID personId) {
-        // Endpoint: DELETE http://devices:8081/devices/user/{personId}
         String url = DEVICES_SERVICE_BASE_URL + "/user/" + personId;
 
         try {
@@ -229,11 +182,8 @@ public class PersonService {
         }
     }
 
-    // Metodă privată pentru a șterge utilizatorul din microserviciul Auth
     private void deleteUserFromAuth(UUID personId) {
-        // Endpoint: DELETE http://auth:8082/auth/{personId}
         String url = AUTH_SERVICE_BASE_URL + "/" + personId;
-
         try {
             restTemplate.exchange(url, HttpMethod.DELETE, null, Void.class);
         } catch (HttpClientErrorException.NotFound e) {

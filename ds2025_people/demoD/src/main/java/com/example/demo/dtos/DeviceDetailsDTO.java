@@ -1,6 +1,7 @@
 package com.example.demo.dtos;
 
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -27,6 +28,7 @@ public class DeviceDetailsDTO {
     private String location;
 
     @NotNull(message = "maxConsumption is required")
+    @Min(value = 0, message = "Maximum consumption cannot be negative")
     private int maxConsumption;
 
     private List<UUID> assignedUserIds;

@@ -25,7 +25,6 @@ public class AuthController {
         if (result.startsWith("User registered successfully")) {
             return ResponseEntity.ok(result);
         } else {
-            // Pentru erori (ex: User already exists), returnăm 400 Bad Request
             return ResponseEntity.badRequest().body(result);
         }
     }
@@ -43,7 +42,7 @@ public class AuthController {
 
     @DeleteMapping(value = "/{authUserId}")
     public ResponseEntity<Void> deleteUser(@PathVariable("authUserId") Long authUserId) {
-        authService.deleteUserByAuthUserId(authUserId); // <--- METODĂ NOUĂ
+        authService.deleteUserByAuthUserId(authUserId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

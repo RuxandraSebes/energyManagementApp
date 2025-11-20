@@ -3,17 +3,15 @@ import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from "react
 import People from "./pages/People";
 import Devices from "./pages/Devices";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/UserDashboard"; // <-- NOU
-import { AuthProvider, useAuth } from "./contexts/AuthContext"; // <-- NOU
+import Dashboard from "./pages/UserDashboard"; 
+import { AuthProvider, useAuth } from "./contexts/AuthContext"; 
 import "./App.css"; 
 
-// Component for conditional navigation links
 const Navigation = () => {
   const { isAdmin, isAuthenticated, logout } = useAuth();
 
   const handleLogout = () => {
     logout();
-    // Force refresh to clear all application state and redirect to Auth
     window.location.href = "/"; 
   };
 
@@ -27,7 +25,6 @@ const Navigation = () => {
           <NavLink to="/devices" className={({ isActive }) => isActive ? "font-bold text-blue-300" : "hover:text-gray-300"}>Devices (Admin)</NavLink>
         </>
       ) : (
-        // User views are centralized in the dashboard
         <NavLink to="/dashboard" className={({ isActive }) => isActive ? "font-bold text-blue-300" : "hover:text-gray-300"}>My Dashboard</NavLink>
       )}
       <button 
@@ -40,18 +37,15 @@ const Navigation = () => {
   );
 };
 
-// Component that protects routes from unauthenticated access
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
   
   if (!isAuthenticated) {
-    // Redirect to login if not authenticated
     return <Navigate to="/" replace />;
   }
   return children;
 };
 
-// Main App component wrapper for the context
 export default function AppWrapper() {
   return (
     <Router>
@@ -62,11 +56,9 @@ export default function AppWrapper() {
   );
 }
 
-// Actual App structure
 function App() {
   const { isAuthenticated, isAdmin } = useAuth();
   
-  // Logic to redirect authenticated users who land on the root path
   const handleRootRedirect = () => {
     if (isAuthenticated) {
         return <Navigate to={isAdmin ? "/people" : "/dashboard"} replace />;
@@ -83,14 +75,11 @@ function App() {
 
       <main className="flex-grow p-4">
         <Routes>
-          {/* Public route (handles login/register and redirects if authenticated) */}
           <Route path="/" element={handleRootRedirect()} />   
           
-          {/* Protected Admin Routes (Admin sees all, User redirect handled by Auth logic) */}
           <Route path="/people" element={<ProtectedRoute><People /></ProtectedRoute>} />
           <Route path="/devices" element={<ProtectedRoute><Devices /></ProtectedRoute>} />
           
-          {/* Protected User Dashboard Route */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           
         </Routes>

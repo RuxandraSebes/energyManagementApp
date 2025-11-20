@@ -1,5 +1,3 @@
-// demoP/security/SecurityConfig.java and demoD/security/SecurityConfig.java
-
 package com.example.demo.security;
 
 import org.springframework.context.annotation.Bean;
@@ -26,28 +24,20 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> {
-                    // Public/Internal Endpoints
-                    auth.requestMatchers("/auth/**").permitAll() // Auth is handled by the Auth service
-                            // Internal-only endpoint (used by Auth service for registration)
+                    auth.requestMatchers("/auth/**").permitAll()
                             .requestMatchers(HttpMethod.POST, "/people/internal-auth-insert").permitAll()
-                            .requestMatchers(HttpMethod.DELETE, "/devices/user/**").permitAll(); // Internal only for People Service delete cascade
+                            .requestMatchers(HttpMethod.DELETE, "/devices/user/**").permitAll();
 
-                    // --- ADMIN ONLY access (CRUD on all resources) ---
                     auth.requestMatchers(HttpMethod.POST, "/people", "/devices").hasRole("ADMIN")
                             .requestMatchers(HttpMethod.PUT, "/people/**", "/devices/**").hasRole("ADMIN")
                             .requestMatchers(HttpMethod.DELETE, "/people/**", "/devices/**").hasRole("ADMIN");
 
-                    // --- AUTHENTICATED ACCESS (User and Admin) ---
-                    // Specific authorization logic will be handled inside the controllers/services
                     auth.requestMatchers("/people/**", "/devices/**").authenticated();
 
-                    // Fallback for any other request
                     auth.anyRequest().authenticated();
                 })
-                // Make session stateless
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        // Add the JWT filter before the standard Spring Security filter
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

@@ -32,7 +32,7 @@ http:
         #- auth-basic
         - strip-api-prefix
 
-  middlewares: #modifica cererea inainte sa ajunga la aplicatie
+  middlewares:
     strip-api-prefix:
       stripPrefix:
         prefixes:

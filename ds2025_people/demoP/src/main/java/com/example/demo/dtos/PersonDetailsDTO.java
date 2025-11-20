@@ -2,6 +2,7 @@ package com.example.demo.dtos;
 
 
 import com.example.demo.dtos.validators.annotation.AgeLimit;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -18,6 +19,7 @@ public class PersonDetailsDTO {
     private String address;
     @NotNull(message = "age is required")
     @AgeLimit(value = 18)
+    @Max(value = 100, message = "Maximum age is 100 years old.")
     private Integer age;
 
     public PersonDetailsDTO(UUID id, String name, String address, int age) {

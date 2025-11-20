@@ -25,14 +25,12 @@ public class PersonBuilder {
     }
 
     public static Person toEntity(PersonAuthRequestDTO authRequestDTO) {
-        // Se folosește constructorul existent pentru detaliile de bază
         Person person = new Person(
                 authRequestDTO.getName(),
                 authRequestDTO.getAddress(),
                 authRequestDTO.getAge()
         );
 
-        // Setarea câmpului unic de legătură
         person.setAuthUserId(authRequestDTO.getAuthUserId());
 
         return person;
